@@ -110,13 +110,10 @@ jobs:
               tail -n 80 "$log"
             done
           } >> "$GITHUB_STEP_SUMMARY"
-          if [ -s /tmp/prepare.log ]; then
-            msg=$(sed -r 's/\x1B\[[0-9;]*[mK]//g' /tmp/prepare.log |
-              grep -Ei 'error|failed|fatal|no such|not found|traceback|invalid' |
-              tail -n 10 | tr '\n' ' ' | cut -c1-900)
-            [ -n "$msg" ] || msg=$(tail -n 5 /tmp/prepare.log | tr '\n' ' ' | cut -c1-900)
-            echo "::error title=Build failure::$msg"
-          fi
+          msg=$(grep -HinE 'error|failed|fatal|undefined reference|no rule|no such file|not found' deps/logs/*.log |
+            tail -n 12 | tr '\n' ' ' | cut -c1-900)
+          [ -n "$msg" ] || msg=$(tail -n 10 /tmp/prepare.log 2>/dev/null | tr '\n' ' ' | cut -c1-900)
+          [ -n "$msg" ] && echo "::error title=Build failure::$msg"
 
       - name: Upload build logs on failure
         if: failure()
