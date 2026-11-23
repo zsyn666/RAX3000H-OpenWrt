@@ -111,7 +111,10 @@ jobs:
             done
           } >> "$GITHUB_STEP_SUMMARY"
           if [ -s /tmp/prepare.log ]; then
-            msg=$(tail -n 30 /tmp/prepare.log | tr '\n' ' ' | cut -c1-900)
+            msg=$(sed -r 's/\x1B\[[0-9;]*[mK]//g' /tmp/prepare.log |
+              grep -Ei 'error|failed|fatal|no such|not found|traceback|invalid' |
+              tail -n 10 | tr '\n' ' ' | cut -c1-900)
+            [ -n "$msg" ] || msg=$(tail -n 5 /tmp/prepare.log | tr '\n' ' ' | cut -c1-900)
             echo "::error title=Build failure::$msg"
           fi
 
