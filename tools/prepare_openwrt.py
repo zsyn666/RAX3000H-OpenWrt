@@ -193,9 +193,11 @@ def validate_config(checkout):
     missing = required - set(config)
     if missing:
         raise SystemExit("Missing rootfs configuration: " + ", ".join(sorted(missing)))
-    if any(line.startswith("CONFIG_PACKAGE_kmod-") and line.endswith(("=y", "=m"))
-           for line in config):
-        raise SystemExit("Kernel modules cannot be built for the retained vendor kernel")
+    kmods = sorted(line.split("=", 1)[0] for line in config
+                   if line.startswith("CONFIG_PACKAGE_kmod-") and line.endswith(("=y", "=m")))
+    if kmods:
+        raise SystemExit("Kernel modules cannot be built for the retained vendor kernel: "
+                         + ", ".join(kmods))
 
 
 def main():
