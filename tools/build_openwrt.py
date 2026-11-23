@@ -93,6 +93,10 @@ def main():
             dep for dep in dependencies if dep != "package/kernel/linux/compile"
         ))
     stage("packages", f"-j{args.jobs}", "package/compile", "V=s", *overrides)
+    # The vendor kernel is not built, but package/image metadata still reads
+    # the kernel version marker normally produced by the kernel build.
+    staging = checkout / "staging_dir/target-arm_cortex-a9_musl_eabi"
+    (staging / "kernel.version").write_text("6.12.0\n")
     stage("rootfs", "package/install", "V=s", *overrides)
     stage("images", "-C", "target/linux/rax3000h/image", f"TOPDIR={checkout}",
           "install", "V=s")
