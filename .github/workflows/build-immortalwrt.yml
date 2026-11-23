@@ -82,7 +82,7 @@ jobs:
       - name: Compile userspace
         run: |
           set -o pipefail
-          python3 tools/build_openwrt.py --jobs 4 2>&1 | tee /tmp/compile.log
+          python3 tools/build_openwrt.py --jobs 8 2>&1 | tee /tmp/compile.log
 
       - name: Assemble firmware image
         run: |
@@ -122,9 +122,13 @@ jobs:
               tail -n 80 "$log"
             done
           } >> "$GITHUB_STEP_SUMMARY"
-          if [ -s /tmp/compile.log ]; then
-            msg=$(tail -n 25 /tmp/compile.log | sed -r 's/\x1B\[[0-9;]*[mK]//g' |
-              tr '\n' ' ' | cut -c1-900)
+          lastlog=$(ls -t deps/logs/{tools,toolchain,packages,rootfs,images}.log 2>/dev/null | head -n 1)
+          if [ -n "$lastlog" ]; then
+            msg=$(tail -n 6 "$lastlog" | sed -r 's/\x1B\[[0-9;]*[mK]//g' |
+              cut -c1-220 | tr '\n' ' ' | cut -c1-900)
+          elif [ -s /tmp/compile.log ]; then
+            msg=$(tail -n 6 /tmp/compile.log | sed -r 's/\x1B\[[0-9;]*[mK]//g' |
+              cut -c1-220 | tr '\n' ' ' | cut -c1-900)
           else
             msg=$(tail -n 10 /tmp/prepare.log 2>/dev/null | tr '\n' ' ' | cut -c1-900)
           fi
@@ -137,6 +141,16 @@ jobs:
           name: build-logs
           path: deps/logs
           if-no-files-found: ignore
+
+      - name: Publish failure log
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "debug-${GITHUB_RUN_ID}" /tmp/compile.log deps/logs/*.log \
+            --title "debug build ${GITHUB_RUN_ID}" \
+            --notes "Temporary build diagnostics" \
+            --prerelease || true
 
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
