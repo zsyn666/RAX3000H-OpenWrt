@@ -1,4 +1,4 @@
-# Only modules explicitly loaded in the working OpenWrt RAM network tests.
+# Only modules explicitly loaded in the working ImmortalWrt RAM network tests.
 # Platform drivers already present before switch_root are separate.
 wired lib/hisilicon/ko/hi_kpinctrl.ko
 wired lib/modules/5.10.0/gpio-generic.ko

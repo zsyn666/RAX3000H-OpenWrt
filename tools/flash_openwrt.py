@@ -175,7 +175,7 @@ def main():
     if interactive:
         print('RAX3000H installation — connect 3.3 V UART (GND/TX/RX, no VCC) and Ethernet to any LAN port.')
         print('Keep the router powered on. Unplug and reconnect power only when prompted.')
-        args.image = prompt_path('Rootfs UBI', release_file('openwrt-rootfs.ubi', 'firmware', interactive=True))
+        args.image = prompt_path('Rootfs UBI', release_file('immortalwrt-rootfs.ubi', 'firmware', interactive=True))
     elif args.image is None:
         parser.error('image is required, or run without arguments for interactive installation')
     if args.installer is None:

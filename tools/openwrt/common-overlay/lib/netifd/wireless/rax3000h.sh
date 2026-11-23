@@ -231,7 +231,7 @@ rax_setup() {
 }
 
 drv_rax3000h_setup() {
-	# OpenWrt 25 netifd serializes setup/teardown across both radios.
+	# ImmortalWrt 25 netifd serializes setup/teardown across both radios.
 	rax_setup
 }
 

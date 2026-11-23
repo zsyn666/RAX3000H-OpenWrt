@@ -1,4 +1,4 @@
-"""Prepare OpenWrt 25 runtime files for flash and local RAM builds."""
+"""Prepare ImmortalWrt 25.12 runtime files for flash and local RAM builds."""
 import hashlib
 import io
 import tarfile
@@ -36,7 +36,7 @@ def prepare_rootfs(source, assets=None, flash_module=None, vendor_links=False):
         with tarfile.open(source, 'r:gz') as archive:
             native_netfilter = any(item.name.removeprefix('./') == 'sbin/fw3' for item in archive)
         if not native_netfilter:
-            raise ValueError("Missing fw3; build the pinned OpenWrt 25 userspace first")
+            raise ValueError("Missing fw3; build the pinned ImmortalWrt 25.12 userspace first")
         for name in ("iptables", "iptables-save", "iptables-restore", "ip6tables", "ip6tables-save", "ip6tables-restore"):
             links["usr/sbin/" + name] = "xtables-legacy-multi"
         links["etc/rc.d/S19firewall"] = "../init.d/firewall"
@@ -123,7 +123,8 @@ def prepare_rootfs(source, assets=None, flash_module=None, vendor_links=False):
                 # Host keys are generated on the device, never built into images.
                 continue
             if name.startswith("etc/uci-defaults/") and name.rsplit("/", 1)[1] not in {
-                    "30_luci-theme-bootstrap", "50_luci-mod-admin-full", "luci-i18n-base-zh-cn"}:
+                    "30_luci-theme-bootstrap", "30_luci-theme-7dollar",
+                    "50_luci-mod-admin-full", "luci-i18n-base-zh-cn"}:
                 continue
             if any(name.startswith(p) for p in ("lib/modules/", "etc/modules.d/", "etc/modules-boot.d/", "etc/board.d/")):
                 continue

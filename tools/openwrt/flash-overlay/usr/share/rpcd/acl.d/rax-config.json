@@ -1,6 +1,6 @@
 {
   "rax-config": {
-    "description": "Back up, restore and reset persistent OpenWrt settings",
+    "description": "Back up, restore and reset persistent ImmortalWrt settings",
     "read": { "ubus": { "rax.config": ["status"] } },
     "write": {
       "ubus": { "rax.config": ["backup", "check", "restore", "reset"], "file": ["read", "write"] },

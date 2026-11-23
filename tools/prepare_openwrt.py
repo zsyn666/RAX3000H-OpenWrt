@@ -1,4 +1,4 @@
-"""Install the project's userspace target into an external OpenWrt checkout.
+"""Install the project's userspace target into an external ImmortalWrt checkout.
 
 Run with Linux Python in WSL. Generated copies may be discarded; the source
 of the adaptation remains beside this script. Does not download or build.
@@ -65,7 +65,7 @@ def install_target(checkout, lock=None):
     source = Path(__file__).resolve().parent / "openwrt"
     checkout = checkout.resolve()
     if not (checkout / "include/target.mk").is_file():
-        raise ValueError("openwrt_dir must be an OpenWrt source checkout")
+        raise ValueError("openwrt_dir must be an ImmortalWrt source checkout")
     # Reject other source versions before writing generated files or patches.
     verify_sources(checkout, lock)
     for patch in patch_paths('openwrt'):
@@ -83,14 +83,26 @@ def install_target(checkout, lock=None):
     # generated source patch in the disposable upstream checkout.
     backend = (source / "iwinfo_rax3000h.c").read_text()
     patch = ('--- a/Makefile\n+++ b/Makefile\n'
-             '@@ -9,1 +9,1 @@\n'
+             '@@ -6,7 +6,7 @@ IWINFO_LDFLAGS     = -luci -lubox -lubus\n'
+             ' \n'
+             ' IWINFO_LIB         = libiwinfo.so\n'
+             ' IWINFO_LIB_LDFLAGS = $(LDFLAGS) -shared -Wl,-soname -Wl,$(IWINFO_LIB).$(IWINFO_SOVERSION)\n'
              '-IWINFO_LIB_OBJ     = iwinfo_utils.o iwinfo_lib.o\n'
              '+IWINFO_LIB_OBJ     = iwinfo_utils.o iwinfo_lib.o iwinfo_rax3000h.o\n'
+             ' \n'
+             ' IWINFO_LUA         = iwinfo.so\n'
+             ' IWINFO_LUA_LDFLAGS = $(LDFLAGS) -shared -L. -liwinfo -llua\n'
              '--- a/iwinfo_lib.c\n+++ b/iwinfo_lib.c\n'
-             '@@ -391,1 +391,4 @@\n'
+             '@@ -396,7 +396,10 @@ const struct iwinfo_iso3166_label IWINFO_ISO3166_NAMES[] = {\n'
+             ' \t{ 0,               "" }\n'
+             ' };\n'
+             ' \n'
              '+extern const struct iwinfo_ops rax3000h_ops;\n+\n'
              ' static const struct iwinfo_ops *backends[] = {\n'
              '+\t&rax3000h_ops,\n'
+             ' #ifdef USE_NL80211\n'
+             ' \t&nl80211_ops,\n'
+             ' #endif\n'
              '--- /dev/null\n+++ b/iwinfo_rax3000h.c\n'
              f'@@ -0,0 +1,{len(backend.splitlines())} @@\n' +
              ''.join('+' + line + '\n' for line in backend.splitlines()))
@@ -101,8 +113,24 @@ def install_target(checkout, lock=None):
     patchdir = checkout / 'package/network/utils/iwinfo/patches'
     patchdir.mkdir(exist_ok=True)
     (patchdir / '900-rax3000h.patch').write_text(patch)
+    install_theme(checkout, lock)
     merge_config(checkout)
     print(f"Target installed: {checkout / 'target/linux/rax3000h'}")
+
+
+def install_theme(checkout, lock):
+    source = checkout.parent / '7dollar'
+    if not source.is_dir():
+        raise ValueError(f"Missing 7Dollar checkout: {source}; run tools/prepare_build.py first")
+    require_revision(source, lock['theme']['commit'])
+    destination = checkout / 'package' / lock['theme']['package']
+    if destination.is_symlink():
+        destination.unlink()
+    elif destination.exists():
+        shutil.rmtree(destination)
+    shutil.copytree(source, destination, ignore=shutil.ignore_patterns(
+        '.git', '.github', 'dist', 'docs'))
+
 
 def merge_config(checkout):
     source = Path(__file__).resolve().parent / "openwrt"
@@ -155,7 +183,7 @@ def configure_checkout(checkout, env=None):
 def validate_config(checkout):
     config = (checkout / ".config").read_text().splitlines()
     required = {
-        "CONFIG_TARGET_rax3000h=y", "CONFIG_SOFT_FLOAT=y",
+        "CONFIG_TARGET_rax3000h=y", "CONFIG_SOFT_FLOAT=y", "CONFIG_USE_APK=y",
         'CONFIG_CPU_TYPE="cortex-a9"', "CONFIG_TARGET_ROOTFS_TARGZ=y",
         "CONFIG_TARGET_ROOTFS_SQUASHFS=y",
     }

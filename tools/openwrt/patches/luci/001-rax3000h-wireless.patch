@@ -93,7 +93,7 @@ index 7ad2e0a..bb22592 100644
  
 @@ -2576,6 +2584,8 @@ return view.extend({
  			uci.set('wireless', section_id, 'mode', 'ap');
- 			uci.set('wireless', section_id, 'ssid', 'OpenWrt');
+ 			uci.set('wireless', section_id, 'ssid', 'ImmortalWrt');
  			uci.set('wireless', section_id, 'encryption', 'none');
 +			if (uci.get('wireless', radioDev.getName(), 'type') == 'rax3000h')
 +				uci.set('wireless', section_id, 'network', 'lan');

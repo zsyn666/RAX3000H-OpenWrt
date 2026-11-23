@@ -1,4 +1,4 @@
-"""Prepare pinned OpenWrt sources and downloads on Linux/WSL; no toolchain build.
+"""Prepare pinned ImmortalWrt sources and downloads on Linux/WSL; no toolchain build.
 
 Defaults to deps/openwrt. An existing checkout must match sources.lock.json.
 Install host packages using your distribution's package manager first.
@@ -14,7 +14,7 @@ from prepare_openwrt import configure_checkout, require_revision, source_lock
 
 def check_host_tools(env):
     tools = ('git', 'gcc', 'g++', 'make', 'patch', 'perl', 'python3', 'tar', 'gzip',
-             'bzip2', 'xz', 'unzip', 'file', 'rsync', 'wget', 'curl', 'diff',
+             'bzip2', 'xz', 'zstd', 'unzip', 'file', 'rsync', 'wget', 'curl', 'diff',
              'awk', 'sed', 'find', 'xargs', 'pkg-config', 'flex', 'bison')
     missing = [name for name in tools if not shutil.which(name, path=env['PATH'])]
     if missing:
@@ -22,7 +22,7 @@ def check_host_tools(env):
                          'Debian/Ubuntu: sudo apt install build-essential clang flex bison g++ '
                          'gawk gcc-multilib gettext git libncurses-dev libssl-dev '
                          'python3 python3-setuptools rsync swig unzip zlib1g-dev '
-                         'file wget curl patch perl xz-utils bzip2 pkg-config')
+                         'file wget curl patch perl xz-utils zstd bzip2 pkg-config')
 
 
 def fetch_repository(directory, entry, env):
@@ -47,6 +47,9 @@ def prepare_sources(checkout, env):
     fetch_repository(checkout, lock['openwrt'], env)
     for name, entry in lock['feeds'].items():
         fetch_repository(checkout / 'feeds' / name, entry, env)
+    # 7Dollar is the only third-party package; keep it outside the upstream
+    # checkout so the build tree stays disposable and its revision is locked.
+    fetch_repository(checkout.parent / '7dollar', lock['theme'], env)
     feeds = checkout / 'feeds.conf'
     if not feeds.exists():
         feeds.write_text(''.join(f"src-git {name} {entry['url']}^{entry['commit']}\n"

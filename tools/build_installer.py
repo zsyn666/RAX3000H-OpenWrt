@@ -1,4 +1,4 @@
-"""Build a small public temporary initramfs using the OpenWrt userspace toolchain."""
+"""Build a small public temporary initramfs using the ImmortalWrt userspace toolchain."""
 import argparse
 import gzip
 import shutil

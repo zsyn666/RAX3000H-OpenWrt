@@ -1,5 +1,5 @@
 config system
-	option hostname 'OpenWrt'
+	option hostname 'ImmortalWrt'
 	option timezone 'GMT0'
 	option zonename 'UTC'
 	option ttylogin '0'

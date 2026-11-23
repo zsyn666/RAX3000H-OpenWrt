@@ -1,4 +1,4 @@
-"""Build ARMv7 soft-float userspace in a pinned external OpenWrt checkout.
+"""Build ARMv7 soft-float userspace in a pinned external ImmortalWrt checkout.
 
 Run with Linux Python in WSL. Produces rootfs archives only; no router access.
 Downloads use the normal environment unless --proxy is supplied.
@@ -17,14 +17,14 @@ def main():
     parser.add_argument("openwrt_dir", type=Path, nargs="?", default=DEFAULT_OPENWRT)
     parser.add_argument("--jobs", type=int, default=min(os.cpu_count() or 1, 8))
     parser.add_argument("--proxy", help="HTTP proxy URL, applied to this build only")
-    parser.add_argument("--mirror", help="Preferred OpenWrt source mirror URL")
+    parser.add_argument("--mirror", help="Preferred ImmortalWrt source mirror URL")
     args = parser.parse_args()
     if args.jobs < 1:
         parser.error("--jobs must be positive")
     checkout = args.openwrt_dir.resolve()
     require_linux()
     if not (checkout / "include/target.mk").is_file():
-        parser.error("OpenWrt sources missing; run tools/prepare_build.py first")
+        parser.error("ImmortalWrt sources missing; run tools/prepare_build.py first")
     logs = checkout.parent / "logs"
     logs.mkdir(exist_ok=True)
     env = build_environment()

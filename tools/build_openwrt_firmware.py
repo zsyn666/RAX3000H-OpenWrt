@@ -1,4 +1,4 @@
-"""Build a public, rootfs-only UBI image from the existing OpenWrt build.
+"""Build a public, rootfs-only UBI image from the existing ImmortalWrt build.
 
 Linux/WSL: python3 tools/build_openwrt_firmware.py OPENWRT_DIR --output DIR
 No vendor binary, calibration data, device backup or credential is included.
@@ -34,7 +34,7 @@ def main():
         root = Path(directory)
         with tarfile.open(fileobj=io.BytesIO(payload), mode='r:gz') as archive:
             archive.extractall(root, filter='fully_trusted')
-        # OpenWrt's original init is retained, behind the minimal flash entry point.
+        # ImmortalWrt's original init is retained, behind the minimal flash entry point.
         (root / 'sbin/init').rename(root / 'sbin/init.procd')
         shutil.copyfile(TOOLS / 'firmware/flash-init', root / 'sbin/init')
         (root / 'sbin/init').chmod(0o755)
@@ -49,7 +49,7 @@ def main():
         (root / 'usr/share/rax3000h/vendor-files.list').write_bytes((TOOLS / 'openwrt/vendor-files.list').read_bytes())
         (root / 'etc/board.json').write_text('{"model":{"id":"hsan,luofu","name":"RAX3000H"},"network":{}}\n')
         run(build.host / 'mksquashfs4', root, squashfs, '-noappend', '-all-root', '-root-mode', '755', '-comp', 'xz', '-b', '131072', '-no-xattrs', '-processors', '2')
-    image = build.output / 'openwrt-rootfs.ubi'
+    image = build.output / 'immortalwrt-rootfs.ubi'
     wrap_ubi(build, squashfs, image)
     print(f'FIRMWARE={image} BYTES={image.stat().st_size}')
 

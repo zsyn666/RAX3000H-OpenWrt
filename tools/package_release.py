@@ -1,7 +1,7 @@
 """Collect the two built images and a Windows/Linux Python flasher ZIP.
 
 This creates local release assets only; it never uploads or publishes them.
-Extract the flasher ZIP beside openwrt-rootfs.ubi and installer.cpio.gz, install
+Extract the flasher ZIP beside immortalwrt-rootfs.ubi and installer.cpio.gz, install
 requirements.txt, then run: python flash_openwrt.py
 """
 import argparse
@@ -20,7 +20,7 @@ FLASH_FILES = (
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--firmware', type=Path, default=DIST / 'firmware/openwrt-rootfs.ubi')
+    parser.add_argument('--firmware', type=Path, default=DIST / 'firmware/immortalwrt-rootfs.ubi')
     parser.add_argument('--installer', type=Path, default=DIST / 'installer/installer.cpio.gz')
     parser.add_argument('--output', type=Path, default=DIST / 'release')
     args = parser.parse_args()
@@ -28,7 +28,7 @@ def main():
         if not path.is_file():
             parser.error(f'Build artifact missing: {path}')
     args.output.mkdir(parents=True, exist_ok=True)
-    for path, name in ((args.firmware, 'openwrt-rootfs.ubi'), (args.installer, 'installer.cpio.gz')):
+    for path, name in ((args.firmware, 'immortalwrt-rootfs.ubi'), (args.installer, 'installer.cpio.gz')):
         target = args.output / name
         if path.resolve() != target.resolve():
             shutil.copyfile(path, target)

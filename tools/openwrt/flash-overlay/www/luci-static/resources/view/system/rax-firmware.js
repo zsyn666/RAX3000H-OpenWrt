@@ -89,7 +89,7 @@ return view.extend({
             }).catch(notifyError);
         })}, '上传备份');
         var resetButton = E('button', {'class':'cbi-button cbi-button-negative', click:function() {
-            confirmConfig('恢复默认设置', '将清除 OpenWrt 用户配置、管理员密码、SSH 密钥和服务设置并重启，联网将中断。默认 LAN 地址为 192.168.77.1，双频无线关闭，管理员密码为空。设备驱动、校准数据、A/B 系统及启动槽选择保留。',
+            confirmConfig('恢复默认设置', '将清除 ImmortalWrt 用户配置、管理员密码、SSH 密钥和服务设置并重启，联网将中断。默认 LAN 地址为 192.168.77.1，双频无线关闭，管理员密码为空。设备驱动、校准数据、A/B 系统及启动槽选择保留。',
                 reset, '192.168.77.1');
         }}, '恢复默认设置');
         configButtons = [backupButton, restoreButton, resetButton];
@@ -119,7 +119,7 @@ return view.extend({
             }).catch(notifyError);
         }}, '上传 rootfs 并刷写');
         switchButton = E('button', {'class':'cbi-button cbi-button-apply', click:function() {
-            ui.showModal('切换启动槽', [E('p', {}, '下次启动使用 '+bootTarget.value.toUpperCase()+' 槽。两个槽共享 OpenWrt 配置和设备资产。'),
+            ui.showModal('切换启动槽', [E('p', {}, '下次启动使用 '+bootTarget.value.toUpperCase()+' 槽。两个槽共享 ImmortalWrt 配置和设备资产。'),
                 E('div', {'class':'right'}, [E('button', {'class':'cbi-button',click:ui.hideModal}, '取消'), ' ',
                     E('button', {'class':'cbi-button cbi-button-apply',click:function() {
                         ui.hideModal();
@@ -152,7 +152,7 @@ return view.extend({
                         settingRow('恢复配置备份', restoreButton, '上传已有备份，确认后恢复配置并重启。')]),
                     E('div', {'class':'cbi-section'}, [
                         E('h3', {}, '恢复默认设置'),
-                        E('div', {'class':'cbi-section-descr'}, '清除用户设置，恢复当前 OpenWrt 的默认配置。'),
+                        E('div', {'class':'cbi-section-descr'}, '清除用户设置，恢复当前 ImmortalWrt 的默认配置。'),
                         settingRow('重置配置', resetButton, '此操作会中断联网，设备资产和 A/B 系统保留。')])]),
                 E('div', {'data-tab':'firmware', 'data-tab-title':'固件升级'}, [
                     E('div', {'class':'cbi-section'}, [
@@ -170,7 +170,7 @@ return view.extend({
                             E('tr', {'class':'tr table-titles'}, [E('th', {'class':'th'}, '启动槽'), E('th', {'class':'th'}, '当前状态')])].concat(slotRows))]),
                     E('div', {'class':'cbi-section'}, [
                         E('h3', {}, '切换启动槽'),
-                        E('div', {'class':'cbi-section-descr'}, '两个槽共享 OpenWrt 配置和设备资产。切换会立即重启并中断联网。'),
+                        E('div', {'class':'cbi-section-descr'}, '两个槽共享 ImmortalWrt 配置和设备资产。切换会立即重启并中断联网。'),
                         settingRow('目标启动槽', bootTarget),
                         settingRow('内核兼容性', E('label', {}, [bootForce, ' 强制接受尚未验证的目标内核'])),
                         settingRow('应用启动选择', switchButton)])])])]);

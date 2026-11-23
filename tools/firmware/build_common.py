@@ -1,4 +1,4 @@
-"""Shared OpenWrt userspace tooling. Run builders using Linux Python (WSL)."""
+"""Shared ImmortalWrt userspace tooling. Run builders using Linux Python (WSL)."""
 import os
 import shutil
 import subprocess

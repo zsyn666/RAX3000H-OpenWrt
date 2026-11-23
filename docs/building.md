@@ -1,6 +1,6 @@
 # Build and development guide
 
-This repository builds OpenWrt 25 userspace for the Mobile RAX3000H. The router keeps its original Linux 5.10 kernel, bootloader and device-specific drivers. The output is a rootfs-only UBI image, a temporary installer, and a Windows/Linux Python flasher bundle.
+This repository builds ImmortalWrt 25.12 userspace for the Mobile RAX3000H. The router keeps its original Linux 5.10 kernel, bootloader and device-specific drivers. The output is a rootfs-only UBI image, a temporary installer, and a Windows/Linux Python flasher bundle. LuCI defaults to the 7Dollar theme; apart from that theme, no third-party plugins are included.
 
 All commands below run from the repository root unless stated otherwise. Building and packaging are entirely local: they do not connect to, reboot or flash a router.
 
@@ -35,7 +35,7 @@ sudo apt update
 sudo apt install \
   build-essential clang flex bison g++ gawk gcc-multilib gettext git \
   libncurses-dev libssl-dev python3 python3-setuptools rsync swig unzip \
-  zlib1g-dev file wget curl patch perl xz-utils bzip2 pkg-config
+  zlib1g-dev file wget curl patch perl xz-utils zstd bzip2 pkg-config
 ```
 
 Use the distribution's Python and system build tools. The wrappers set a Linux-only tool search path and a consistent locale; Windows executables and virtual-environment tools are not used as build tools.
@@ -61,7 +61,8 @@ RAX3000H-OpenWrt/
 │   └── openwrt/                   # Target, configuration, patches and runtime files
 ├── docs/
 ├── deps/
-│   ├── openwrt/                   # Pinned upstream checkout, feeds and build products
+│   ├── openwrt/                   # Pinned ImmortalWrt checkout, feeds and build products
+│   ├── 7dollar/                   # Pinned 7Dollar theme source
 │   └── logs/                      # Feed and build stage logs
 └── dist/
     ├── firmware/                  # Rootfs image and packaging intermediates
@@ -80,11 +81,11 @@ python3 tools/prepare_build.py
 This step:
 
 1. Checks that the host tools are available.
-2. Fetches the exact OpenWrt and feed commits from `tools/openwrt/sources.lock.json` into `deps/openwrt` and `deps/openwrt/feeds`.
-3. Installs the project target and Wi-Fi scan package, applies OpenWrt/LuCI adaptations, and generates the iwinfo backend patch.
+2. Fetches the exact ImmortalWrt and feed commits from `tools/openwrt/sources.lock.json` into `deps/openwrt` and `deps/openwrt/feeds`, plus the pinned 7Dollar theme into `deps/7dollar`.
+3. Installs the project target, Wi-Fi scan package and 7Dollar theme, applies ImmortalWrt/LuCI adaptations, and generates the iwinfo backend patch.
 4. Indexes the local feeds and installs the selected LuCI package definitions.
 5. Merges `tools/openwrt/rootfs.config`, runs `make defconfig`, and checks the resulting configuration.
-6. Runs `make download` to populate OpenWrt's source archive cache.
+6. Runs `make download` to populate ImmortalWrt's source archive cache.
 
 An existing repository at the expected commit is reused without fetching or resetting it. Its local edits are preserved. A different commit causes an explicit version mismatch; the script does not silently move a developer's checkout. Downloads reuse the upstream cache. Configuration and patch preparation still run on subsequent invocations.
 
@@ -96,11 +97,11 @@ To prepare repositories and configuration without downloading package archives:
 python3 tools/prepare_build.py --skip-download
 ```
 
-The lock file currently selects OpenWrt `v25.12.6`, commit `64900e756efa667774214f9c6b17c113222e01f7`, with separately pinned packages, LuCI and iwinfo revisions. Treat the lock file as the authoritative version list. Use the project preparation script instead of a generic `feeds update -a` workflow that moves feeds to newer revisions.
+The lock file currently selects ImmortalWrt `v25.12.2`, commit `4fc16f2985a358bd43bb522e43f05395fcbd6ed5`, with separately pinned packages, LuCI, iwinfo and 7Dollar revisions. Treat the lock file as the authoritative version list. Use the project preparation script instead of a generic `feeds update -a` workflow that moves feeds to newer revisions.
 
-### Reuse an existing OpenWrt checkout
+### Reuse an existing ImmortalWrt checkout
 
-Each of the four preparation/build scripts accepts an optional OpenWrt directory as its first argument:
+Each of the four preparation/build scripts accepts an optional ImmortalWrt directory as its first argument:
 
 ```bash
 python3 tools/prepare_build.py /home/user/build/rax-openwrt
@@ -109,9 +110,9 @@ python3 tools/build_openwrt_firmware.py /home/user/build/rax-openwrt
 python3 tools/build_installer.py /home/user/build/rax-openwrt
 ```
 
-Pass the same path to all four commands. The existing checkout must match the lock file; any existing `feeds.conf` must contain the pinned entries. Logs go to `logs/` beside that checkout. Output still goes to this project's `dist/` unless `--output` is supplied to the image builders.
+Pass the same path to all four commands. The existing checkout must match the lock file; any existing `feeds.conf` must contain the pinned entries. The matching 7Dollar checkout is expected in a sibling `7dollar` directory (default `deps/7dollar`). Logs go to `logs/` beside that checkout. Output still goes to this project's `dist/` unless `--output` is supplied to the image builders.
 
-## 4. Compile OpenWrt userspace
+## 4. Compile ImmortalWrt userspace
 
 ```bash
 python3 tools/build_openwrt.py --jobs 8
@@ -123,7 +124,7 @@ The wrapper first reapplies the project configuration, then runs these stages:
 
 | Stage | What it does |
 |---|---|
-| `tools` | Builds host-side OpenWrt tools, including filesystem/image utilities |
+| `tools` | Builds host-side ImmortalWrt tools, including filesystem/image utilities |
 | `toolchain` | Builds the Cortex-A9 ARMv7 soft-float GCC/musl cross-toolchain |
 | `packages` | Compiles the selected userspace packages and project adaptations |
 | `rootfs` | Installs the selected packages into the target root filesystem |
@@ -131,7 +132,7 @@ The wrapper first reapplies the project configuration, then runs these stages:
 
 The runtime ABI is ARMv7/Cortex-A9, musl, **soft-float**. The target's Linux 6.12 setting supplies build metadata/UAPI; it does not replace the router's Linux 5.10 kernel. The wrapper excludes the kernel build and removes irrelevant kernel dependencies from selected package build graphs. Configuration validation rejects selected `kmod-*` packages.
 
-Use this wrapper rather than plain `make world`. Official hard-float ARM packages and official OpenWrt kernel modules are not substitutes for this toolchain and retained kernel.
+Use this wrapper rather than plain `make world`. Official hard-float ARM packages and official ImmortalWrt kernel modules are not substitutes for this toolchain and retained kernel. Packages use ImmortalWrt 25.12's native APK format.
 
 Stage output is written to `deps/logs/`. A failed stage prints the final log lines and identifies the full log. Logs are overwritten when that stage runs again. For example, monitor package compilation in another terminal:
 
@@ -166,9 +167,9 @@ This reads the base `*default-rootfs.tar.gz` from the userspace build and:
 - Compiles the required NAND/UBI and U-Boot environment userspace tools using the same toolchain.
 - Creates an XZ-compressed SquashFS and wraps it in the router's UBI format.
 
-The result is `dist/firmware/openwrt-rootfs.ubi`. The image has one static volume named `squashfs`, 128 KiB physical eraseblocks, a 2048-byte minimum I/O size and VID-header offset, and a 4096-byte data offset. The packager enforces a 27 MiB image-size ceiling to leave flash overhead and bad-block reserve.
+The result is `dist/firmware/immortalwrt-rootfs.ubi`. The image has one static volume named `squashfs`, 128 KiB physical eraseblocks, a 2048-byte minimum I/O size and VID-header offset, and a 4096-byte data offset. The packager enforces a 27 MiB image-size ceiling to leave flash overhead and bad-block reserve.
 
-Temporary filesystem trees are created inside the Linux OpenWrt `build_dir` so that SquashFS retains correct permissions. Do not assemble the root tree by manually extracting it onto a Windows filesystem.
+Temporary filesystem trees are created inside the Linux build `build_dir` so that SquashFS retains correct permissions. Do not assemble the root tree by manually extracting it onto a Windows filesystem.
 
 The resulting image contains no vendor kernel, private driver blobs, calibration data, device backups or preinstalled SSH keys. At runtime, vendor assets live under `/plugins/openwrt/vendor/`; persistent configuration and credentials also live under `/plugins/openwrt/`. The image's root filesystem remains read-only, with selected writable runtime paths and configuration mounts. It is not a general writable package overlay.
 
@@ -180,9 +181,9 @@ python3 tools/build_installer.py
 
 This creates `dist/installer/installer.cpio.gz`, a small RAM filesystem containing BusyBox, temporary SSH, network setup, vendor-asset extraction/staging, and the NAND/UBI tools. Executables and their required shared libraries come from the same userspace build.
 
-The installer is not a second persistent firmware image. During installation, the flasher loads it with the kernel read from the device. It reuses already-staged vendor assets, or extracts them from the original A-slot rootfs when installing for the first time. It then stages the assets in the plugins partition before writing the OpenWrt rootfs.
+The installer is not a second persistent firmware image. During installation, the flasher loads it with the kernel read from the device. It reuses already-staged vendor assets, or extracts them from the original A-slot rootfs when installing for the first time. It then stages the assets in the plugins partition before writing the ImmortalWrt rootfs.
 
-The installer uses temporary root SSH with no password authentication requirement. This access belongs to the RAM installer; the installed OpenWrt system generates and persists its own SSH host keys.
+The installer uses temporary root SSH with no password authentication requirement. This access belongs to the RAM installer; the installed ImmortalWrt system generates and persists its own SSH host keys.
 
 ## 7. Package the release
 
@@ -194,7 +195,7 @@ This copies the two images and packages the host flasher into `dist/release/`:
 
 | File | Purpose |
 |---|---|
-| `openwrt-rootfs.ubi` | Persistent rootfs-only firmware |
+| `immortalwrt-rootfs.ubi` | Persistent rootfs-only firmware |
 | `installer.cpio.gz` | Temporary RAM installer |
 | `rax3000h-flasher.zip` | Flat Python flasher bundle with `requirements.txt` and helper modules |
 
@@ -204,7 +205,7 @@ To package images from other output directories:
 
 ```bash
 python3 tools/package_release.py \
-  --firmware /path/to/openwrt-rootfs.ubi \
+  --firmware /path/to/immortalwrt-rootfs.ubi \
   --installer /path/to/installer.cpio.gz \
   --output dist/release
 ```
@@ -219,7 +220,8 @@ The flasher backs up the device partitions, writes rootfs A, selects A and reque
 |---|---|
 | Required package selection | `tools/openwrt/rootfs.config` |
 | Architecture and target metadata | `tools/openwrt/target/` |
-| Upstream OpenWrt/LuCI changes | `tools/openwrt/patches/openwrt/`, `tools/openwrt/patches/luci/` |
+| Upstream ImmortalWrt/LuCI changes | `tools/openwrt/patches/openwrt/`, `tools/openwrt/patches/luci/` |
+| 7Dollar theme source | `deps/7dollar/` (pinned by `tools/openwrt/sources.lock.json`) |
 | fw3 adaptation | `tools/openwrt/patches/firewall/` |
 | Default UCI configuration and common runtime scripts | `tools/openwrt/common-overlay/` |
 | Flash-only LuCI/RPC, persistence management and flashing | `tools/openwrt/flash-overlay/` |
@@ -231,9 +233,9 @@ The flasher backs up the device partitions, writes rootfs A, selects A and reque
 | Installer runtime | `tools/firmware/installer-overlay/` |
 | Host flashing and release packaging | `tools/flash_openwrt.py`, `tools/common/`, `tools/package_release.py` |
 
-Keep permanent changes in this repository. Files copied or generated in `deps/openwrt` are build inputs derived from these sources. Do not leave the only copy of a fix in that dependency checkout.
+Keep permanent changes in this repository. Files copied or generated in `deps/openwrt` and `deps/7dollar` are build inputs derived from these sources. Do not leave the only copy of a fix in that dependency checkout.
 
-`prepare_openwrt.py` is the configuration/application layer used by both preparation and compilation. It can also run alone when the locked repositories already exist:
+`prepare_openwrt.py` is the configuration/application layer used by both preparation and compilation. It can also run alone when the locked repositories, including `deps/7dollar`, already exist:
 
 ```bash
 python3 tools/prepare_openwrt.py
@@ -249,6 +251,7 @@ It applies and indexes the local adaptation without fetching repositories, downl
 | Installer runtime or installer assembly | `build_installer.py`, then `package_release.py` |
 | Code copied into both images: `rax-network.sh`, asset manifests, shared runtime utilities, or flash-overlay `rax-flash`, `rax-mac`, `fw_env.config` | Both image builders, then `package_release.py` |
 | Package selection, upstream patches, iwinfo, scan C code, copied LuCI form module | `build_openwrt.py`, then the affected image builders and `package_release.py` |
+| 7Dollar revision in `sources.lock.json` | `prepare_build.py`, `build_openwrt.py`, then the affected image builders and `package_release.py` |
 | Host flasher Python or `requirements.txt` | `package_release.py` |
 | Documentation or README images | No firmware rebuild |
 
@@ -256,7 +259,7 @@ All script names in this table are under `tools/`. These are packaging dependenc
 
 ### Package selection and defaults
 
-Make required package changes in `rootfs.config`. The preparation step merges that fragment into `.config` and preserves unrelated settings, then runs `defconfig`. Settings explicitly present in the fragment win over local `.config` edits.
+Make required package changes in `rootfs.config`. The preparation step merges that fragment into `.config` and preserves unrelated settings, then runs `defconfig`. Settings explicitly present in the fragment win over local `.config` edits. Keep the package set limited to ImmortalWrt official feeds; the only third-party package is `luci-theme-7dollar`, fetched by `prepare_build.py` and installed from the pinned theme checkout by `prepare_openwrt.py`.
 
 `make menuconfig` is useful for exploration, but promote the desired package settings into `rootfs.config` before sharing the change. Packages needed by `configure_checkout` may also need an entry in its feed-install list.
 
@@ -266,7 +269,7 @@ Default configuration in a new image does not automatically replace a router's e
 
 The patch application checks whether a patch is already applied. Replacing an already-applied patch with a different patch can conflict with the previous contents in an existing checkout. Keep any dependency-local work before changing it. A separate, freshly prepared checkout is the simplest way to test a revised patch set without resetting existing work; use it instead of retaining two full builds within the 12 GB workspace budget.
 
-OpenWrt also caches compiled package contents. After changing a generated iwinfo patch, clean that package before rebuilding through the wrapper:
+ImmortalWrt also caches compiled package contents. After changing a generated iwinfo patch, clean that package before rebuilding through the wrapper:
 
 ```bash
 make -C deps/openwrt package/network/utils/iwinfo/clean
@@ -298,7 +301,11 @@ Then rebuild the images that need the changed contents. Prefer targeted package 
 | Image builder cannot find a compiler or base rootfs | Finish the userspace build first and pass the same OpenWrt directory to every builder |
 | New source is present but old behavior remains | Check whether the affected package needs cleaning, whether the correct image was repackaged, and whether persisted device configuration overrides defaults |
 
-## 9. Working with an agent
+## 9. GitHub Actions
+
+`.github/workflows/build-immortalwrt.yml` runs the same four build/packaging steps on an Ubuntu 22.04 runner. It is triggered by a push to `main` that touches `tools/`, `docs/`, `README.md`, `requirements.txt` or the workflow itself, and can also be started manually with **Run workflow**. The workflow restores the ImmortalWrt download cache, uploads the three release files as an artifact and publishes them under the `25.12.2-rax3000h` release tag. A cold first run compiles the cross-toolchain and takes substantially longer than later runs.
+
+## 10. Working with an agent
 
 Use the source map and rebuild table above to scope changes. Preserve the pinned ABI and retained-kernel design unless the task explicitly changes that design. Include any new upstream edits as reproducible project patches or project-owned source files.
 

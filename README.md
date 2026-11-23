@@ -1,11 +1,13 @@
-# RAX3000H-OpenWrt
+# RAX3000H-ImmortalWrt
 
-移动 RAX3000H 路由器的 OpenWrt 25 用户态适配。保留原厂内核和驱动，提供熟悉的 OpenWrt 与 LuCI 管理体验。
+移动 RAX3000H 路由器的 ImmortalWrt 25.12.2 用户态适配。保留原厂内核和驱动，提供熟悉的 ImmortalWrt 与 LuCI 管理体验，默认使用 7Dollar 主题。
 
 <img src="assets/router.jpg" alt="RAX3000H 路由器" width="600">
 
 ## 支持功能
 
+- ImmortalWrt 25.12.2 用户空间，APK 软件包格式
+- [7Dollar](https://github.com/itsmaiGe/luci-theme-7dollar) 默认主题，保留 Bootstrap 作为回退
 - 中文 LuCI 管理界面
 - 千兆有线网络、双频 Wi-Fi、硬件转发加速
 - WPA2 / WPA3、自动信道、DFS、160 MHz
@@ -13,16 +15,11 @@
 - IPv4 / IPv6 双栈、防火墙、端口转发
 - 配置持久化、恢复出厂设置
 - 网页刷写固件、A/B 启动槽管理
+- 仅使用 ImmortalWrt 官方软件包；除 7Dollar 主题外不集成第三方插件
 
 ## 运行截图
 
-RAX3000H 实机运行 OpenWrt 25.12.6，保留原厂 Linux 5.10.0 内核。
-
-![LuCI 系统状态：RAX3000H、ARMv7、OpenWrt 25.12.6、Linux 5.10.0](assets/luci-status.png)
-
-终端读取的设备树标识、实际运行内核和 OpenWrt 版本：
-
-![终端运行信息：hsan-luofu、Linux 5.10.0、ARMv7、OpenWrt 25.12.6](assets/runtime-terminal.png)
+RAX3000H 保留原厂 Linux 5.10.0 内核。ImmortalWrt 25.12.2 + 7Dollar 的实机界面截图待更新。
 
 ## 刷机
 
@@ -53,7 +50,7 @@ RAX3000H 实机运行 OpenWrt 25.12.6，保留原厂 Linux 5.10.0 内核。
 
 - `rax3000h-flasher.zip`
 - `installer.cpio.gz`
-- `openwrt-rootfs.ubi`
+- `immortalwrt-rootfs.ubi`
 
 解压压缩包，将另外两个文件放进解压后的目录。在该目录打开终端，执行：
 
@@ -68,17 +65,21 @@ Linux 将 `python` 换成 `python3`。
 
 原始分区备份保存在 `backup` 目录，请妥善留存。
 
-### 3. 进入 OpenWrt
+### 3. 进入 ImmortalWrt
 
-等待路由器重启，打开 **http://192.168.77.1**，出现 LuCI 页面即安装完成。
+等待路由器重启，打开 **http://192.168.77.1**，出现 7Dollar 主题的 LuCI 页面即安装完成。
 
 首次使用 `root`、空密码登录，进入后设置管理密码。Wi-Fi 默认关闭，在「网络 → 无线」中配置并启用。
+
+## GitHub Actions 构建
+
+仓库内置 `.github/workflows/build-immortalwrt.yml`。推送到 `main`，或在 Actions 页面手动执行 **Build ImmortalWrt 25.12.2 for RAX3000H**，会在 Ubuntu 22.04 上完成源码编译，上传 `rax3000h-immortalwrt-25.12.2` artifact，并发布 `25.12.2-rax3000h` Release。首次构建需要下载源码并编译工具链，耗时较长。
 
 ## 自行构建
 
 详细步骤、环境要求和开发流程见 [Build and development guide](docs/building.md)。
 
-使用 Linux，Windows 请使用 WSL。依赖源码默认放在 `deps/openwrt`，准备脚本自动拉取固定版本，已存在且版本匹配的依赖会跳过下载。
+使用 Linux，Windows 请使用 WSL。ImmortalWrt 源码默认放在 `deps/openwrt`，7Dollar 主题源码放在 `deps/7dollar`；准备脚本自动拉取固定版本，已存在且版本匹配的依赖会跳过下载。
 
 在仓库根目录执行：
 
@@ -90,17 +91,17 @@ python3 tools/build_installer.py
 python3 tools/package_release.py
 ```
 
-准备脚本负责源码、配置及依赖下载；构建脚本编译工具链和用户空间。缺少系统构建依赖时，按脚本提示安装后重跑即可。发布产物位于 `dist/release`。
+准备脚本负责 ImmortalWrt 25.12.2 源码、锁定 feed、7Dollar 主题源码及依赖下载；构建脚本编译工具链和用户空间。缺少系统构建依赖时，按脚本提示安装后重跑即可。发布产物位于 `dist/release`。
 
-本项目沿用原厂内核，不能直接安装 OpenWrt 官方内核模块（kmod）。公开镜像不包含原厂私有驱动、固件或设备校准数据，安装时从本机提取。
+除 7Dollar 主题外，固件只使用 ImmortalWrt 官方软件包，不集成第三方插件。本项目沿用原厂内核，不能直接安装 ImmortalWrt 官方内核模块（kmod）。公开镜像不包含原厂私有驱动、固件或设备校准数据，安装时从本机提取。
 
 ## 免责声明
 
-本项目为个人开发的非官方适配，与设备厂商及 OpenWrt 官方无关。刷机有风险，请确认设备型号、正确接线并妥善保存备份。使用本项目造成的设备损坏、数据丢失等后果由使用者自行承担。
+本项目为个人开发的非官方适配，与设备厂商及 ImmortalWrt 官方无关。刷机有风险，请确认设备型号、正确接线并妥善保存备份。使用本项目造成的设备损坏、数据丢失等后果由使用者自行承担。
 
 ## 许可证
 
-除文件中另有许可声明外，本仓库代码采用 [GNU GPL v2.0 only（GPL-2.0-only）](LICENSE)。已标注 MIT 的文件继续采用 [MIT 许可证](LICENSES/MIT.txt)；上游代码、补丁涉及的原始代码及构建产物中的第三方组件遵循各自许可证，原有版权和许可声明继续有效。原厂私有驱动、固件和设备校准数据不在本仓库的许可授权范围内，也不随公开镜像分发。
+除文件中另有许可声明外，本仓库代码采用 [GNU GPL v2.0 only（GPL-2.0-only）](LICENSE)。已标注 MIT 的文件继续采用 [MIT 许可证](LICENSES/MIT.txt)；上游代码、补丁涉及的原始代码及构建产物中的第三方组件遵循各自许可证，原有版权和许可声明继续有效。7Dollar 主题在构建时从上游拉取，遵循其 Apache-2.0 许可证。原厂私有驱动、固件和设备校准数据不在本仓库的许可授权范围内，也不随公开镜像分发。
 
 ## 免费分享
 

@@ -6,8 +6,8 @@ index b3a81bf..f52d557 100644
  
  define Package/ppp
  $(call Package/ppp/Default)
--  DEPENDS:= +USE_GLIBC:libcrypt-compat +kmod-ppp
-+  DEPENDS:= +USE_GLIBC:libcrypt-compat +!TARGET_rax3000h:kmod-ppp
+-  DEPENDS:= +USE_GLIBC:libcrypt-compat +kmod-ppp +shellsync +kmod-mppe
++  DEPENDS:= +USE_GLIBC:libcrypt-compat +!TARGET_rax3000h:kmod-ppp +shellsync +!TARGET_rax3000h:kmod-mppe
    TITLE:=PPP daemon
    VARIANT:=default
  endef

@@ -9,7 +9,7 @@ CPU_CFLAGS_cortex-a9:=-mcpu=cortex-a9
 FEATURES:=squashfs targz
 DEVICE_TYPE:=basic
 
-# OpenWrt build metadata/UAPI baseline only. This target does not replace
+# ImmortalWrt build metadata/UAPI baseline only. This target does not replace
 # the running vendor Linux 5.10 kernel or supply compatible kernel modules.
 KERNEL_PATCHVER:=6.12
 

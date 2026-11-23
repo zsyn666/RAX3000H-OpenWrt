@@ -1,21 +1,26 @@
 {
   "openwrt": {
-    "url": "https://git.openwrt.org/openwrt/openwrt.git",
-    "tag": "v25.12.6",
-    "commit": "64900e756efa667774214f9c6b17c113222e01f7"
+    "url": "https://github.com/immortalwrt/immortalwrt.git",
+    "tag": "v25.12.2",
+    "commit": "4fc16f2985a358bd43bb522e43f05395fcbd6ed5"
   },
   "feeds": {
     "packages": {
-      "url": "https://git.openwrt.org/feed/packages.git",
-      "commit": "093d551675b1119a06ef224d419905e8d6b2af1a"
+      "url": "https://github.com/immortalwrt/packages.git",
+      "commit": "84bd86384928955b568988ca0e09e2c78c75173d"
     },
     "luci": {
-      "url": "https://git.openwrt.org/project/luci.git",
-      "commit": "75a306df84a020c57a631ef5b4c02ace56d93387"
+      "url": "https://github.com/immortalwrt/luci.git",
+      "commit": "d6167ea0645cbd1327708d85f94824f42d0eb872"
     }
   },
   "iwinfo": {
-    "commit": "66bdd1a071895d91babc9b9228bb84626bbce226",
+    "commit": "f5dd57a84cc31a403a1383dd14944fa2e2b5824a",
     "abi": "20230701"
+  },
+  "theme": {
+    "url": "https://github.com/itsmaiGe/luci-theme-7dollar.git",
+    "commit": "f9c783f91f5b55828de74bf57b29c39a49156639",
+    "package": "luci-theme-7dollar"
   }
 }
