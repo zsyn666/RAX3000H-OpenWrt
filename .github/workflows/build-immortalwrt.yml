@@ -110,6 +110,10 @@ jobs:
               tail -n 80 "$log"
             done
           } >> "$GITHUB_STEP_SUMMARY"
+          if [ -s /tmp/prepare.log ]; then
+            msg=$(tail -n 30 /tmp/prepare.log | tr '\n' ' ' | cut -c1-900)
+            echo "::error title=Build failure::$msg"
+          fi
 
       - name: Upload build logs on failure
         if: failure()
