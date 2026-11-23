@@ -1,0 +1,11 @@
+--- a/package/Makefile
++++ b/package/Makefile
+@@ -105,7 +105,7 @@
+ 		$$(cat $(TMP_DIR)/apk_install_list) \
+ 			"base-files=$(shell cat $(STAGING_DIR)/base-files.version)" \
+ 			"libc=$(shell cat $(STAGING_DIR)/libc.version)" \
+-			"kernel=$(shell cat $(STAGING_DIR)/kernel.version)"
++			$(if $(CONFIG_TARGET_rax3000h),,"kernel=$(shell cat $(STAGING_DIR)/kernel.version)")
+ 
+ 	rm -rf $(TARGET_DIR)/run
+ else
