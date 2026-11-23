@@ -1,0 +1,9 @@
+--- a/package/emortal/default-settings/Makefile
++++ b/package/emortal/default-settings/Makefile
+@@ -13,5 +13,5 @@ define Package/default-settings
+   CATEGORY:=LuCI
+   TITLE:=LuCI support for Default Settings
+-  DEPENDS:=+luci
++  DEPENDS:=+!TARGET_rax3000h:luci
+   PKGARCH:=all
+ endef
