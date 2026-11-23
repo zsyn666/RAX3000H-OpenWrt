@@ -64,6 +64,16 @@ jobs:
           restore-keys: |
             openwrt-dl-
 
+      - name: Restore userspace build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps/openwrt/build_dir
+            deps/openwrt/staging_dir
+          key: openwrt-build-${{ hashFiles('tools/openwrt/sources.lock.json', 'tools/openwrt/rootfs.config', 'tools/openwrt/patches/**/*.patch', 'tools/prepare_openwrt.py', 'tools/prepare_build.py') }}
+          restore-keys: |
+            openwrt-build-
+
       - name: Prepare pinned sources
         run: |
           set -o pipefail
@@ -71,7 +81,8 @@ jobs:
 
       - name: Compile userspace
         run: |
-          python3 tools/build_openwrt.py --jobs 4
+          set -o pipefail
+          python3 tools/build_openwrt.py --jobs 4 2>&1 | tee /tmp/compile.log
 
       - name: Assemble firmware image
         run: |
@@ -102,6 +113,7 @@ jobs:
         run: |
           mkdir -p deps/logs
           cp /tmp/prepare.log deps/logs/prepare.log 2>/dev/null || true
+          cp /tmp/compile.log deps/logs/compile.log 2>/dev/null || true
           {
             echo '### Build failure'
             for log in deps/logs/*.log; do
@@ -110,9 +122,12 @@ jobs:
               tail -n 80 "$log"
             done
           } >> "$GITHUB_STEP_SUMMARY"
-          msg=$(grep -HinE 'error|failed|fatal|undefined reference|no rule|no such file|not found' deps/logs/*.log |
-            tail -n 12 | tr '\n' ' ' | cut -c1-900)
-          [ -n "$msg" ] || msg=$(tail -n 10 /tmp/prepare.log 2>/dev/null | tr '\n' ' ' | cut -c1-900)
+          if [ -s /tmp/compile.log ]; then
+            msg=$(tail -n 25 /tmp/compile.log | sed -r 's/\x1B\[[0-9;]*[mK]//g' |
+              tr '\n' ' ' | cut -c1-900)
+          else
+            msg=$(tail -n 10 /tmp/prepare.log 2>/dev/null | tr '\n' ' ' | cut -c1-900)
+          fi
           [ -n "$msg" ] && echo "::error title=Build failure::$msg"
 
       - name: Upload build logs on failure
